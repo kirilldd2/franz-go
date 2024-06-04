@@ -104,17 +104,24 @@ func softwareVersion() string {
 	return "unknown"
 }
 
+type KafkaClient interface {
+	RequestSharded(ctx context.Context, req kmsg.Request) []kgo.ResponseShard
+	Broker(id int) *kgo.Broker
+	Close()
+	Request(ctx context.Context, req kmsg.Request) (kmsg.Response, error)
+}
+
 // Client is an admin client.
 //
 // This is a simple wrapper around a *kgo.Client to provide helper admin methods.
 type Client struct {
-	cl *kgo.Client
+	cl KafkaClient
 
 	timeoutMillis int32
 }
 
 // NewClient returns an admin client.
-func NewClient(cl *kgo.Client) *Client {
+func NewClient(cl KafkaClient) *Client {
 	return &Client{cl, 15000} // 15s timeout default, matching kmsg
 }
 
